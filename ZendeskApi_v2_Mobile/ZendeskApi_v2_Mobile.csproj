@@ -524,82 +524,40 @@
     <Compile Include="..\ZendeskApi_v2\RequestResult.cs">
       <Link>RequestResult.cs</Link>
     </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\AccountsAndActivity.cs">
-      <Link>Requests\AccountsAndActivity.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Categories.cs">
-      <Link>Requests\Categories.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\CustomAgentRoles.cs">
-      <Link>Requests\CustomAgentRoles.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Forums.cs">
-      <Link>Requests\Forums.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Groups.cs">
-      <Link>Requests\Groups.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\JobStatuses.cs">
-      <Link>Requests\JobStatuses.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Locales.cs">
-      <Link>Requests\Locales.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Macros.cs">
-      <Link>Requests\Macros.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Organizations.cs">
-      <Link>Requests\Organizations.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Requests.cs">
-      <Link>Requests\Requests.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\SatisfactionRatings.cs">
-      <Link>Requests\SatisfactionRatings.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Search.cs">
-      <Link>Requests\Search.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\SharingAgreements.cs">
-      <Link>Requests\SharingAgreements.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Tags.cs">
-      <Link>Requests\Tags.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Tickets.cs">
-      <Link>Requests\Tickets.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Topics.cs">
-      <Link>Requests\Topics.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Triggers.cs">
-      <Link>Requests\Triggers.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Users.cs">
-      <Link>Requests\Users.cs</Link>
-    </Compile>
-    <Compile Include="..\ZendeskApi_v2\Requests\Views.cs">
-      <Link>Requests\Views.cs</Link>
-    </Compile>
     <Compile Include="Core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Requests\Attachments.cs" />
+    <Compile Include="Requests\Tickets.cs" />
     <Compile Include="ZendeskApi.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Threading.Tasks">
+      <HintPath>..\packages\Microsoft.Bcl.Async.1.0.12-beta\lib\portable-net40+sl4+win8+wp71\Microsoft.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Threading.Tasks.Extensions">
+      <HintPath>..\packages\Microsoft.Bcl.Async.1.0.12-beta\lib\portable-net40+sl4+win8+wp71\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\portable-net40+sl4+wp7+win8\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net" />
+    <Reference Include="System.Runtime">
+      <HintPath>..\packages\Microsoft.Bcl.1.0.11-beta\lib\portable-net40+sl4+win8+wp71\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <HintPath>..\packages\Microsoft.Bcl.1.0.11-beta\lib\portable-net40+sl4+win8+wp71\System.Threading.Tasks.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <Import Project="..\packages\Microsoft.Bcl.1.0.11-beta\tools\portable-net40+sl4+win8+wp71\Microsoft.Bcl.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
-using ZendeskApi_v2.Extensions;
 
 namespace ZendeskApi_v2
 {
@@ -29,29 +29,23 @@ namespace ZendeskApi_v2
             ZendeskUrl = zendeskApiUrl;
         }
 
-        public T GetByPageUrl<T>(string pageUrl)
+        public async Task<T> GetByPageUrlAsync<T>(string pageUrl)
         {
             if (string.IsNullOrEmpty(pageUrl))
                 return JsonConvert.DeserializeObject<T>("");
 
             var resource = Regex.Split(pageUrl, "api/v2/").Last();
-            return RunRequest<T>(resource, "GET");
+            return await RunRequestAsync<T>(resource, "GET");
         }
 
-        public T RunRequest<T>(string resource, string requestMethod, object body = null)
+        public async Task<T> RunRequestAsync<T>(string resource, string requestMethod, object body = null)
         {
-            var response = RunRequest(resource, requestMethod, body);
-            var obj = JsonConvert.DeserializeObject<T>(response.Content);
-            return obj;
+            var response = await RunRequestAsync(resource, requestMethod, body);
+            var obj = Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(response.Content));
+            return await obj;
         }
 
-        protected string GetAuthHeader(string userName, string password)
-        {
-            string auth = Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", userName, password)));
-            return string.Format("Basic {0}", auth);
-        }
-
-        public RequestResult RunRequest(string resource, string requestMethod, object body = null)
+        public async Task<RequestResult> RunRequestAsync(string resource, string requestMethod, object body = null)
         {
             var requestUrl = ZendeskUrl;
             if (!requestUrl.EndsWith("/"))
@@ -64,54 +58,87 @@ namespace ZendeskApi_v2
 
             req.Credentials = new System.Net.NetworkCredential(User, Password);
             req.Headers["Authorization"] = GetAuthHeader(User, Password);
-            
+
 
             req.Method = requestMethod; //GET POST PUT DELETE
-            req.Accept = "application/json, application/xml, text/json, text/x-json, text/javascript, text/xml";            
+            req.Accept = "application/json, application/xml, text/json, text/x-json, text/javascript, text/xml";
 
             if (body != null)
             {
                 var json = JsonConvert.SerializeObject(body, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-                byte[] formData = UTF8Encoding.UTF8.GetBytes(json);                
+                byte[] formData = UTF8Encoding.UTF8.GetBytes(json);
 
-                var dataStream = req.GetWebRequestStream();
-                dataStream.Write(formData, 0, formData.Length);                
+                var requestStream = Task.Factory.FromAsync(
+                    req.BeginGetRequestStream,
+                    asyncResult => req.EndGetRequestStream(asyncResult),
+                    (object)null);
+
+                var dataStream = await requestStream.ContinueWith(t => t.Result.WriteAsync(formData, 0, formData.Length));
+                Task.WaitAll(dataStream);
             }
 
-            var res = req.GetWebResponse();
-            HttpWebResponse response = res as HttpWebResponse;
-            var responseStream = response.GetResponseStream();
-            var reader = new StreamReader(responseStream);
-            string responseFromServer = reader.ReadToEnd();
+            //var res = req.GetWebResponse();
+            //HttpWebResponse response = res as HttpWebResponse;
+            //var responseStream = response.GetResponseStream();
+            //var reader = new StreamReader(responseStream);
+            //string responseFromServer = reader.ReadToEnd();
 
-            return new RequestResult()
+            Task<WebResponse> task = Task.Factory.FromAsync(
+            req.BeginGetResponse,
+            asyncResult => req.EndGetResponse(asyncResult),
+            (object)null);
+
+            return await task.ContinueWith(t =>
             {
-                Content = responseFromServer,
-                HttpStatusCode = response.StatusCode
-            };
-        }     
+                var httpWebResponse = t.Result as HttpWebResponse;
 
-        protected T GenericGet<T>(string resource)
-        {
-            return RunRequest<T>(resource, "GET");
+                return new RequestResult
+                {
+                    Content = ReadStreamFromResponse(httpWebResponse),
+                    HttpStatusCode = httpWebResponse.StatusCode
+                };
+
+            });
         }
 
-        protected bool GenericDelete(string resource)
+        protected async Task<T> GenericGetAsync<T>(string resource)
         {
-            var res = RunRequest(resource, "DELETE");
-            return res.HttpStatusCode == HttpStatusCode.OK;
+            return await RunRequestAsync<T>(resource, "GET");
         }
 
-        protected T GenericPost<T>(string resource, object body = null)
+        protected async Task<bool> GenericDeleteAsync(string resource)
         {
-            var res = RunRequest<T>(resource, "POST", body);
-            return res;
+            var res = RunRequestAsync(resource, "DELETE");
+            return await res.ContinueWith(x => x.Result.HttpStatusCode == HttpStatusCode.OK);
         }
 
-        protected T GenericPut<T>(string resource, object body = null)
+        protected async Task<T> GenericPostAsync<T>(string resource, object body = null)
         {
-            var res = RunRequest<T>(resource, "PUT", body);
-            return res;
-        }        
+            var res = RunRequestAsync<T>(resource, "POST", body);
+            return await res;
+        }
+
+        protected async Task<T> GenericPutAsync<T>(string resource, object body = null)
+        {
+            var res = RunRequestAsync<T>(resource, "PUT", body);
+            return await res;
+        }
+
+        protected string GetAuthHeader(string userName, string password)
+        {
+            string auth = Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", userName, password)));
+            return string.Format("Basic {0}", auth);
+        }
+
+        private static string ReadStreamFromResponse(WebResponse response)
+        {
+            using (Stream responseStream = response.GetResponseStream())
+            using (StreamReader sr = new StreamReader(responseStream))
+            {
+                //Need to return this response 
+                string strContent = sr.ReadToEnd();
+                return strContent;
+            }
+        }
     }
 }
